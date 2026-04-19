@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/14.0.2">
+    <PropertyGroup>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <LangVersion>13.0</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>Ashfall.Engine</AssemblyName>
+        <RootNamespace>Ashfall.Engine</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <Use_DalamudPackager>false</Use_DalamudPackager>
+        <Platforms>x64</Platforms>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+        <PackageReference Update="DalamudPackager" Version="14.0.2" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <Description>Rendering/overlay toolkit for Dalamud plugins : 3D occlusion (raycast + depth-buffer), native UI occlusion, world-to-screen projection helpers.</Description>
+        <Authors>Ashfall Codex</Authors>
+    </PropertyGroup>
+</Project>
