@@ -1,5 +1,7 @@
 # Ashfall.Engine
 
+*[Read in English](./README.en.md)*
+
 Boîte à outils C# / Dalamud pour dessiner des overlays ImGui au-dessus du rendu 3D de FINAL FANTASY XIV tout en respectant **l'occlusion par la géométrie du monde et l'UI native du jeu**.
 
 Conçu pour les plugins Ashfall-Codex (en particulier [UmbraSync](https://github.com/Ashfall-Codex/UmbraClient)), mais utilisable par tout plugin Dalamud qui a besoin d'icônes flottantes, de bulles ou de labels correctement cachés derrière les murs, arbres, mobilier housing et menus.
