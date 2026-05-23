@@ -188,20 +188,43 @@ public sealed class DepthBufferOcclusionStrategy : IOcclusionStrategy
         if (!_mapped || _mappedStaging == null) return false;
         if (!WorldProjection.TryProjectToScreen(targetWorldPos, out _, out var expectedZ)) return false;
 
-        int sx = (int)screenPixel.X;
-        int sy = (int)screenPixel.Y;
-        if (sx < 0 || sy < 0 || sx >= _width || sy >= _height) return false;
-
         var basePtr = (byte*)_mapBox.DataPointer.ToPointer();
         if (basePtr == null) return false;
         int rowPitch = _mapBox.RowPitch;
+
+        // Kernel 5-points (centre + 4 coins à ±4 px) : on prend le MIN de samples (reverse-Z : min = pixel
+        // le plus profond du voisinage). Si même le pixel le plus profond est devant la cible, la zone est
+        // bien occluse. Évite le flicker à la rotation caméra où un sub-pixel jitter ferait passer
+        // l'échantillon de l'arrière-plan (non occlus) à la silhouette du joueur (occluse) entre frames.
+        const int kernelOffset = 4;
+        float deepestSampled = 1f;
+        bool anyValid = false;
+        TrySample(screenPixel.X, screenPixel.Y, ref deepestSampled, ref anyValid, basePtr, rowPitch);
+        TrySample(screenPixel.X - kernelOffset, screenPixel.Y - kernelOffset, ref deepestSampled, ref anyValid, basePtr, rowPitch);
+        TrySample(screenPixel.X + kernelOffset, screenPixel.Y - kernelOffset, ref deepestSampled, ref anyValid, basePtr, rowPitch);
+        TrySample(screenPixel.X - kernelOffset, screenPixel.Y + kernelOffset, ref deepestSampled, ref anyValid, basePtr, rowPitch);
+        TrySample(screenPixel.X + kernelOffset, screenPixel.Y + kernelOffset, ref deepestSampled, ref anyValid, basePtr, rowPitch);
+
+        if (!anyValid) return false;
+
+        // Epsilon élargi (0.002 vs 0.0005) : reverse-Z à distance nameplate (~5-15 yalms) correspond
+        // à une tolérance de quelques dizaines de cm, suffisant pour ignorer les variations
+        // sub-modèle (vêtements, accessoires) sans laisser passer une vraie occlusion par mur.
+        return deepestSampled > expectedZ + 0.002f;
+    }
+
+    private unsafe void TrySample(float fx, float fy, ref float deepest, ref bool anyValid, byte* basePtr, int rowPitch)
+    {
+        int sx = (int)fx;
+        int sy = (int)fy;
+        if (sx < 0 || sy < 0 || sx >= _width || sy >= _height) return;
         int offset = sy * rowPitch + sx * 4;
         uint raw = *(uint*)(basePtr + offset);
         uint depth24 = raw & 0x00FFFFFFu;
         float sampled = depth24 / (float)0xFFFFFF;
-
-        // Reverse-Z : plus grand = plus proche. Occluded si le pixel samplé est devant la cible.
-        return sampled > expectedZ + 0.0005f;
+        if (!anyValid || sampled < deepest)
+            deepest = sampled;
+        anyValid = true;
     }
 
     private void InvalidateStaging()
