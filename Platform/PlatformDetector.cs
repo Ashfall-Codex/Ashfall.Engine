@@ -35,6 +35,15 @@ public static class PlatformDetector
     public static bool IsDXMT => Backend == GraphicsBackend.DXMT;
     public static bool IsDXVK => Backend == GraphicsBackend.DXVK;
     public static bool IsNativeDirectX => Backend == GraphicsBackend.NativeDX11;
+    private const uint AmdVendorId = 0x1002;
+    public static bool IsAmd
+    {
+        get
+        {
+            EnsureInitialized();
+            return _backend == GraphicsBackend.NativeDX11 && _vendorId == AmdVendorId;
+        }
+    }
 
     public static void Prime() => EnsureInitialized();
 
