@@ -34,7 +34,11 @@ public sealed class OverlayEngine : IDisposable
         // via son chemin MTL_DXGI_FORMAT_EMULATED_D24 — détection fiable via PE metadata de d3d11.dll.
         // On force le raycast dans ce cas, peu importe la préférence utilisateur.
         bool blockedByDxmt = PlatformDetector.IsDXMT;
-        bool useDepth = !blockedByDxmt && (forceDepthBuffer ?? preferHighPrecision);
+        // Cartes AMD (Windows natif) : le driver amdxx64.dll souffre d'access violations sous la
+        // pression du CopyResource de depth buffer effectué chaque frame (crashs récurrents
+        // observés sur RDNA 4 — RX 9060/9070). On force le raycast, peu importe la préférence.
+        bool blockedByAmd = PlatformDetector.IsAmd;
+        bool useDepth = !blockedByDxmt && !blockedByAmd && (forceDepthBuffer ?? preferHighPrecision);
 
         if (useDepth)
         {
